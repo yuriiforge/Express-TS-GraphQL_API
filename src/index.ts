@@ -3,33 +3,16 @@ import { graphqlHTTP } from 'express-graphql';
 import { PubSub } from 'graphql-subscriptions';
 import { WebSocketServer } from 'ws';
 import express from 'express';
-import Query from './resolvers/Query';
-import Mutation from './resolvers/Mutation';
-import Subscription from './resolvers/Subscription';
-import User from './resolvers/User';
-import Post from './resolvers/Post';
-import Comment from './resolvers/Comment';
 import 'dotenv/config';
-import fs from 'node:fs';
-import path from 'node:path';
 import { createServer } from 'node:http';
 import { useServer } from 'graphql-ws/use/ws';
 import prisma from './prisma';
+import * as Modules from './modules';
+import { buildSchemaFromModules } from './utils/buildSchemaFromModules';
 
 const pubsub = new PubSub();
-const typeDefs = fs.readFileSync(
-  path.join(__dirname, 'schema.graphql'),
-  'utf-8'
-);
 
-const resolvers = {
-  Query,
-  Mutation,
-  Subscription,
-  User,
-  Post,
-  Comment,
-};
+const { typeDefs, resolvers } = buildSchemaFromModules(Object.values(Modules));
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
