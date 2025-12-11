@@ -1,19 +1,30 @@
-// src/resolvers/Mutation.ts
-
 import { Context } from '../types/Context';
 import { Prisma } from '@prisma/client';
 import { User, Post, Comment } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const token = jwt.sign({ id: 46 }, 'mysecret');
+console.log(token);
+
+const decoded2 = jwt.verify(token, 'mysecret');
+console.log(decoded2);
 
 interface UserMutationArgs {
   data: Prisma.UserCreateInput | Prisma.UserUpdateInput;
   id: number;
+}
+
+interface AuthPayload {
+  user: User;
+  token: string;
 }
 interface PostMutationArgs {
   data: {
     title: string;
     body: string;
     published: boolean;
-    author: number; // Assuming author ID is passed as number
+    author: number;
   };
   id: number;
 }
@@ -27,15 +38,25 @@ interface CommentMutationArgs {
 }
 
 const Mutation = {
-  // --- USER MUTATIONS ---
-
   async createUser(
     parent: any,
     args: { data: Prisma.UserCreateInput },
     { prisma }: Context
-  ): Promise<User> {
+  ): Promise<AuthPayload> {
     try {
-      return await prisma.user.create({ data: args.data });
+      if (args.data.password.length < 8) {
+        throw new Error('Password must be at least 8 characters long!');
+      }
+
+      const password = await bcrypt.hash(args.data.password, 10);
+      const user = await prisma.user.create({
+        data: { ...args.data, password },
+      });
+
+      return {
+        user,
+        token: jwt.sign({ userId: user.id }, 'thisisasecret'),
+      };
     } catch (e: any) {
       if (e.code === 'P2002') {
         throw new Error('Email taken');
