@@ -7,7 +7,11 @@ import { QueryParams } from '../../types/QueryParams';
 import prisma from '../../prisma';
 import { hashService } from '../../services/hash.service';
 
-const userService = new UserService(prisma, hashService);
+let userService = new UserService(prisma, hashService);
+
+export const __setUserService = (mock: any) => {
+  userService = mock;
+};
 
 export const userResolvers = {
   Query: {

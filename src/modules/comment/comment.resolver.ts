@@ -3,7 +3,11 @@ import { Context } from '../../types/Context';
 import { CommentService } from './comment.service';
 import prisma from '../../prisma';
 
-const commentService = new CommentService(prisma);
+let commentService = new CommentService(prisma);
+
+export const __setCommentService = (service: CommentService) => {
+  commentService = service;
+};
 
 export const commentResolvers = {
   Query: {

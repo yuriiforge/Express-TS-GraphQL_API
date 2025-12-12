@@ -3,7 +3,11 @@ import { Context } from '../../types/Context';
 import { PostService } from './post.service';
 import prisma from '../../prisma';
 
-const postService = new PostService(prisma);
+let postService = new PostService(prisma);
+
+export const __setPostService = (service: PostService) => {
+  postService = service;
+};
 
 export const postResolvers = {
   Query: {
